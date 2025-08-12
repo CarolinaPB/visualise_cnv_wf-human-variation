@@ -1,0 +1,5 @@
+default:
+    data_path: "data"
+    
+testing:
+    data_path: "/Users/carolinabarros/Documents/Repositories/cnv_nanopore/data"
