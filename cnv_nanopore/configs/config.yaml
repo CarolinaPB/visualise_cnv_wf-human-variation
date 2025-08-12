@@ -2,6 +2,3 @@ default:
     data_path: "data"
     cytoband_file: "resources/cytoBandIdeo.txt"
     fai_file: "resources/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.fai"
-    
-testing:
-    data_path: "/Users/carolinabarros/Documents/Repositories/cnv_nanopore/data"
