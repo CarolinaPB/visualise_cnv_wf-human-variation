@@ -116,20 +116,34 @@ mod_plots_server <- function(id, inputs) {
                             xmin = start, xmax = end,
                             ymin = min(bed_chr$coverage) - 1,
                             ymax = max(bed_chr$coverage) + 1,
-                            fill = svtype
+                            fill = svtype,
+                            text = paste0(
+                                "CNV: ", svtype,
+                                "<br>CN: ", cn,
+                                "<br>Chr: ", chr,
+                                "<br>Start: ", start,
+                                "<br>End: ", end
+                            )
                         ),
                         alpha = 0.2
                     ) +
                     geom_point(
                         data = cnv_chr,
-                        aes(x = start, y = 10, color = svtype),
+                        aes(x = start, y = 10, color = svtype,
+                            text = paste0(
+                                "CNV: ", svtype,
+                                "<br>CN: ", cn,
+                                "<br>Chr: ", chr,
+                                "<br>Start: ", start,
+                                "<br>End: ", end
+                            )),
                         shape = 17, size = 2
                     ) +
                     scale_fill_manual(values = c(DEL = "red", DUP = "green")) +
                     scale_color_manual(values = c(DEL = "red", DUP = "green"))
             }
             
-            ggplotly(p_chr)
+            ggplotly(p_chr, tooltip = "text")
         })
     })
 }
