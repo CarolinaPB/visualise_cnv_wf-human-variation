@@ -11,9 +11,7 @@ dirSelectServer <- function(id, config_section = "default") {
         volumes <- c(Home = fs::path_home(), Root = "/")
         shinyFiles::shinyDirChoose(input, "dir", roots = volumes, session = session)
         
-        print(here)
         config <- config::get(config = config_section, file = here::here("cnv_nanopore/configs/config.yaml"))
-        print(config)
         default_dir <- here(config$data_path)
         
         dirPath <- reactive({

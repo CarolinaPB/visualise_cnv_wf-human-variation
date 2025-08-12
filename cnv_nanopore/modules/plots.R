@@ -14,7 +14,6 @@ mod_plots_server <- function(id, inputs, config_section = "default") {
                               file = here::here("cnv_nanopore/configs/config.yaml"))
         
         cytoband_file <- here(config$cytoband_file)
-        fai_file <- here(config$fai_file)
         
         gie_colors <- c(
             gneg = "ghostwhite", gpos25 = "gray70", gpos50 = "gray50",
@@ -27,15 +26,6 @@ mod_plots_server <- function(id, inputs, config_section = "default") {
                                stringsAsFactors = FALSE) %>%
             mutate(chr = sub("^chr", "", chr),
                    color = gie_colors[gieStain]) %>% as_tibble() 
-        
-        # Load fai data once
-        fai_df <- read.table(fai_file, header = FALSE, sep = "\t",
-                             col.names = c("chr", "length", "start", "value1", "value2"),
-                             stringsAsFactors = FALSE) %>%
-            mutate(chr = sub("^chr", "", chr),
-                   middle = start + (length / 2)) %>%
-            as_tibble() %>%
-            dplyr::slice(1:24)
         
         
         output$facetPlot <- renderPlotly({
