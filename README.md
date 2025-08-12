@@ -12,13 +12,9 @@ These plots show the mean coverage per genomic region (blue line) and the CNA pr
 ## Installation
 
 This app was tested with R v4.5.0
+If setting up with Rstudio: File --> New project --> Version Control --> Repository URL: `https://github.com/CarolinaPB/visualise_cnv_wf-human-variation.git` and choose where you want to save it
 
-```bash
-git clone https://github.com/CarolinaPB/visualise_cnv_wf-human-variation.git
-cd visualise_cnv_wf-human-variation
-```
-
-The R Renv package is used to take care of package dependencies. Use `renv::restore()` to set it up and install the necessary packages.
+The R Renv package is used to take care of package dependencies. Use `renv::restore()` to install the necessary packages.
 
 ### Prepare data
 
@@ -43,5 +39,5 @@ default:
 You can start the app by running
 
 ```R
-runApp('cnv_nanopore')
+shiny::runApp('cnv_nanopore')
 ```
