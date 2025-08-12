@@ -5,6 +5,8 @@ library(VariantAnnotation)
 library(here)
 library(config)
 library(shinyFiles)
+library(ggplot2)
+
 
 i_am("cnv_nanopore/app.R")
 
