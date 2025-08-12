@@ -2,7 +2,7 @@
 
 Rshiny app to visualise CNVs detected with the [EPI2ME wf-human-variation](https://github.com/epi2me-labs/wf-human-variation) workflow.
 
-
+![App overview](images/app.png)
 
 ## Installation
 
