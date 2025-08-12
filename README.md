@@ -1,6 +1,11 @@
 # CNV Nanopore
 
-Rshiny app to visualise CNVs detected with the [EPI2ME wf-human-variation](https://github.com/epi2me-labs/wf-human-variation) workflow.
+Rshiny app to visualise CNAs detected with the [EPI2ME wf-human-variation](https://github.com/epi2me-labs/wf-human-variation) workflow. 
+Two plots are included:
+- `Multi-chromosome` plot with a small overview of all chromosomes - coverage and CNAs
+- `Single-chromosome` plot with coverage and CNAs for the selected chromosome  
+
+These plots show the mean coverage per genomic region (blue line) and the CNA predictions from wf-human-variation in green (gain) or red (loss). The small triangles show the start position of the CNA (sometimes the CNAs are so small that the corresponding line is not clear). In addition, the chromosome cytoband is included below the single chromosome plot. The plots are interactive.
 
 ![App overview](images/app.png)
 
