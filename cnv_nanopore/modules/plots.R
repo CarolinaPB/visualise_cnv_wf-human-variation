@@ -35,20 +35,28 @@ mod_plots_server <- function(id, inputs, config_section = "default") {
             dat <- inputs$data_list()
             ordered_chrs <- c(paste0("chr", 1:22), "chrX", "chrY")
             
-            bed <- dat$bed %>% mutate(chr = factor(chr, levels = ordered_chrs))
-            cnv <- dat$cnv %>% mutate(chr = factor(chr, levels = ordered_chrs))
+            # Prepare BED coverage data
+            bed <- dat$bed %>%
+                mutate(chr = factor(chr, levels = ordered_chrs))
             
-            # Calculate ymin/ymax for CNV rects from bed coverage for consistent vertical range
-            ymin_rect <- min(bed$coverage, na.rm = TRUE) - 1
-            ymax_rect <- max(bed$coverage, na.rm = TRUE) + 1
+            # Prepare CNV data
+            cnv <- dat$cnv %>%
+                mutate(chr = factor(chr, levels = ordered_chrs))
             
+            # Plot
             p_facet <- ggplot() +
-                geom_line(data = bed, aes(x = start, y = coverage), color = "steelblue") +
+                geom_line(
+                    data = bed,
+                    aes(x = start, y = coverage),
+                    color = "steelblue"
+                ) +
                 geom_rect(
                     data = cnv,
                     aes(
                         xmin = start, xmax = end,
+                        ymin = ymin, ymax = ymax,
                         fill = svtype,
+                        color = svtype,
                         text = paste0(
                             "CNV: ", svtype,
                             "<br>CN: ", cn,
@@ -57,24 +65,23 @@ mod_plots_server <- function(id, inputs, config_section = "default") {
                             "<br>End: ", end
                         )
                     ),
-                    ymin = ymin_rect,
-                    ymax = ymax_rect,
                     alpha = 0.2
                 ) +
                 geom_point(
                     data = cnv,
                     aes(
                         x = start,
-                        y = ymax_rect,
+                        y = ymax,
                         color = svtype,
                         text = paste0(
                             "CNV Start: ", start,
                             "<br>Chr: ", chr,
                             "<br>Type: ", svtype,
                             "<br>CN: ", cn
-                        )
+                        ),
+                        fill = svtype
                     ),
-                    shape = 17,
+                    shape = 25,
                     size = 2
                 ) +
                 scale_fill_manual(values = c(DEL = "red", DUP = "green")) +
@@ -88,13 +95,15 @@ mod_plots_server <- function(id, inputs, config_section = "default") {
                     color = "CNV Type"
                 ) +
                 theme_minimal() +
-                theme(panel.grid = element_blank(),
-                      axis.text.x = element_blank(),
-                      axis.ticks.x = element_blank()
+                theme(
+                    panel.grid = element_blank(),
+                    axis.text.x = element_blank(),
+                    axis.ticks.x = element_blank()
                 )
             
             ggplotly(p_facet, tooltip = "text")
         })
+        
         
         output$chrPlot <- renderPlotly({
             req(inputs$sample(), inputs$data_list(), inputs$chromosome())
@@ -128,7 +137,12 @@ mod_plots_server <- function(id, inputs, config_section = "default") {
             p_chr <- ggplot() +
                 # Cytoband first (drawn below coverage)
                 geom_rect(data = cytoband_chr,
-                          aes(xmin = start, xmax = end, ymin = ymin, ymax = ymax, fill = gieStain,
+                          aes(
+                              xmin = start,
+                              xmax = end,
+                              ymin = ymin,
+                              ymax = ymax,
+                              fill = gieStain,
                               text = paste0(
                                   "Band: ", name,
                                   "<br>Chr: ", chr,
@@ -150,6 +164,7 @@ mod_plots_server <- function(id, inputs, config_section = "default") {
                                           ymin = min(bed_chr$coverage, na.rm = TRUE) - 1,
                                           ymax = max(bed_chr$coverage, na.rm = TRUE) + 1,
                                           fill = svtype,
+                                          color = svtype,
                                           text = paste0(
                                               "CNV: ", svtype,
                                               "<br>CN: ", cn,
