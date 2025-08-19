@@ -133,7 +133,7 @@ mod_plots_server <- function(id, inputs, config_section = "default") {
                     ymin  = cyto_min,
                     ymax  = cyto_max
                 )
-            
+
             p_chr <- ggplot() +
                 # Cytoband first (drawn below coverage)
                 geom_rect(data = cytoband_chr,
@@ -152,7 +152,14 @@ mod_plots_server <- function(id, inputs, config_section = "default") {
                           inherit.aes = FALSE, show.legend = FALSE) +
                 
                 # Coverage line
-                geom_line(data = bed_chr, aes(x = start, y = coverage),
+                geom_line(data = bed_chr, aes(x = start, y = coverage,
+                                              group = 1,
+                                              text = paste0(
+                                                  "<br>Chr: ", chr,
+                                                  "<br>Start: ", start,
+                                                  "<br>End: ", end,
+                                                  "<br>Coverage: ", coverage
+                                              )),
                           color = "steelblue") +
                 
                 # CNVs if present
