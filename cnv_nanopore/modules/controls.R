@@ -1,10 +1,10 @@
 mod_controls_ui <- function(id) {
     ns <- NS(id)
     tagList(
-        selectInput(ns("chromosome"), "Chromosome:", choices = c("All", paste0("chr", 1:22), "chrX", "chrY"), selected = "chr1"),
-        numericInput(ns("start_pos"), "Start position:", value = 1, min = 1),
-        numericInput(ns("end_pos"), "End position:", value = 1e6, min = 1),
-        numericInput(ns("max_coverage"), "Max coverage:", value = 200, min = 1),
+        selectInput(ns("chromosome"), "Chromosome:", choices = c(paste0("chr", 1:22), "chrX", "chrY"), selected = "chr1"),
+        numericInput(ns("start_pos"), "Start position:", value = NA, min = 1),
+        numericInput(ns("end_pos"), "End position:", value = NA, min = 1),
+        numericInput(ns("max_coverage"), "Max coverage:", value = NA, min = 1),
         actionButton(ns("reset_btn"), "Reset Inputs")
     )
 }
@@ -89,11 +89,7 @@ mod_controls_server <- function(id, root_dir, sample_info) {
             {
                 dat <- data_list()
                 
-                # If chromosome is "All", don't filter, or pick a default (e.g. "chr1")
                 chr_selected <- input$chromosome
-                if(chr_selected == "All") {
-                    chr_selected <- "chr1"
-                }
                 
                 bed_chr <- dat$bed %>% filter(chr == chr_selected)
                 
