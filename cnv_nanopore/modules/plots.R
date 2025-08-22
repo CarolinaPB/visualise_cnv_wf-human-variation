@@ -17,77 +17,6 @@ compute_chrom_offsets <- function(bed, ordered_chrs) {
                chr_index = row_number())
 }
 
-# build_facet_plot <- function(data_list, sample_name, ordered_chrs) {
-#     bed <- data_list$bed %>% mutate(chr = factor(chr, levels = ordered_chrs))
-#     cnv <- data_list$cnv %>% mutate(chr = factor(chr, levels = ordered_chrs))
-#     
-#     p <- ggplot() +
-#         geom_line(data = bed,
-#                   aes(x = start, y = coverage),
-#                   color = "steelblue") +
-#         geom_rect(
-#             data = cnv,
-#             aes(
-#                 xmin = start,
-#                 xmax = end,
-#                 ymin = ymin,
-#                 ymax = ymax,
-#                 fill = svtype,
-#                 color = svtype,
-#                 text = paste0(
-#                     "CNV: ",
-#                     svtype,
-#                     "<br>CN: ",
-#                     cn,
-#                     "<br>Chr: ",
-#                     chr,
-#                     "<br>Start: ",
-#                     start,
-#                     "<br>End: ",
-#                     end
-#                 )
-#             ),
-#             alpha = 0.2
-#         ) +
-#         geom_point(
-#             data = cnv,
-#             aes(
-#                 x = start,
-#                 y = ymax,
-#                 color = svtype,
-#                 text = paste0(
-#                     "CNV Start: ",
-#                     start,
-#                     "<br>Chr: ",
-#                     chr,
-#                     "<br>Type: ",
-#                     svtype,
-#                     "<br>CN: ",
-#                     cn
-#                 ),
-#                 fill = svtype
-#             ),
-#             shape = 25,
-#             size = 2
-#         ) +
-#         scale_fill_manual(values = c(DEL = "red", DUP = "green")) +
-#         scale_color_manual(values = c(DEL = "red", DUP = "green")) +
-#         facet_wrap( ~ chr, scales = "free", ncol = 4) +
-#         labs(
-#             title = sample_name,
-#             x = "Genomic Position",
-#             y = "Mean Coverage",
-#             fill = "CNV Type",
-#             color = "CNV Type"
-#         ) + theme_minimal() + theme(
-#             panel.grid = element_blank(),
-#             axis.text.x = element_blank(),
-#             axis.ticks.x = element_blank()
-#         )
-#     
-#     ggplotly(p, tooltip = "text")
-# }
-
 build_chr_plot <- function(data_list,
                            chromosome,
                            start_pos,
@@ -244,7 +173,8 @@ build_manhattan_plot <- function(data_list,
                 ymax = max_cov * 1.1
             ),
             fill = "lightgray",
-            alpha = 0.4
+            alpha = 0.4,
+            inherit.aes = FALSE
         ) +
         geom_rect(
             data = cytoband_global,
@@ -253,18 +183,17 @@ build_manhattan_plot <- function(data_list,
                 xmax = global_end,
                 ymin = ymin,
                 ymax = ymax,
+                fill = gieStain,
                 text = paste0(
-                    "Band: ",
-                    name,
-                    "<br>Chr: ",
-                    chr,
-                    "<br>Start: ",
-                    start,
-                    "<br>End: ",
-                    end
+                    "Band: ", name,
+                    "<br>Chr: ", chr,
+                    "<br>Start: ", start,
+                    "<br>End: ", end
                 ),
-                fill = gieStain
+                # group = paste(chr, name)  # each band is a separate trace
+                group = interaction(chr, name)
             ),
+            # show.legend = FALSE
         ) +
         geom_rect(
             data = cnv_global,
@@ -283,7 +212,7 @@ build_manhattan_plot <- function(data_list,
             ),
             ymin = 0,
             ymax = max_cov*1.1,
-            alpha = 0.3
+            alpha = 0.3,
         ) +
         geom_point(
             data = cnv_global,
@@ -302,7 +231,9 @@ build_manhattan_plot <- function(data_list,
             ),
             shape = 23,
             size = 3,
-            alpha = 0.6
+            alpha = 0.6,
+            # show.legend = FALSE,
+            # inherit.aes = FALSE
         ) +
         geom_line(
             data = bed_global,
@@ -331,7 +262,9 @@ build_manhattan_plot <- function(data_list,
         scale_fill_manual(values = c(gie_colors, DEL = "red", DUP = "green")) +
         scale_color_manual(values = c(DEL = "red", DUP = "green"))+
         guides(fill = "none")
-    ggplotly(p,tooltip = "text")
+    
+    ggplotly(p, tooltip = "text")
+    
 }
 
 

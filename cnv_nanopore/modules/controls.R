@@ -4,7 +4,7 @@ mod_controls_ui <- function(id) {
         selectInput(ns("chromosome"), "Chromosome:", choices = c(paste0("chr", 1:22), "chrX", "chrY"), selected = "chr1"),
         numericInput(ns("start_pos"), "Start position:", value = NA, min = 1),
         numericInput(ns("end_pos"), "End position:", value = NA, min = 1),
-        numericInput(ns("max_coverage"), "Max coverage:", value = NA, min = 1),
+        numericInput(ns("max_coverage"), "Max coverage:", value = 250, min = 1),
         actionButton(ns("reset_btn"), "Reset Inputs")
     )
 }
@@ -58,8 +58,6 @@ mod_controls_server <- function(id, root_dir, sample_info) {
             cnv_df_cov <- cnv_df %>%
                 left_join(coverage_ranges, by = "chr")
             
-            print(cnv_df_cov)
-            
             list(
                 bed = bed,
                 cnv = cnv_df_cov,
@@ -81,7 +79,6 @@ mod_controls_server <- function(id, root_dir, sample_info) {
             
             updateNumericInput(session, "start_pos", value = start_min, min = start_min, max = end_max)
             updateNumericInput(session, "end_pos", value = end_max, min = start_min, max = end_max)
-            updateNumericInput(session, "max_coverage", value = 250, min = cov_min, max = cov_max)
         })
         
         observeEvent(
@@ -101,7 +98,6 @@ mod_controls_server <- function(id, root_dir, sample_info) {
                     
                     updateNumericInput(session, "start_pos", value = start_min, min = start_min, max = end_max)
                     updateNumericInput(session, "end_pos", value = end_max, min = start_min, max = end_max)
-                    updateNumericInput(session, "max_coverage", value = 250, min = cov_min, max = cov_max)
                 }
             }, 
             ignoreNULL = TRUE, 
