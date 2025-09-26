@@ -294,6 +294,9 @@ mod_plots_server <- function(id, inputs, config_section = "default") {
         cytoband <- load_cytoband(here(config$cytoband_file), gie_colors)
         ordered_chrs <- c(paste0("chr", 1:22), "chrX", "chrY")
         
+        # Flag to signal that the main plots are ready
+        main_plots_ready <- reactiveVal(FALSE)
+        
         output$manhattanChrPlot <- renderPlotly({
             req(
                 inputs$sample(),
@@ -321,7 +324,7 @@ mod_plots_server <- function(id, inputs, config_section = "default") {
             )
             
             
-            build_chr_plot(
+            p <- build_chr_plot(
                 inputs$data_list(),
                 inputs$chromosome(),
                 inputs$start_pos(),
@@ -331,6 +334,9 @@ mod_plots_server <- function(id, inputs, config_section = "default") {
                 cytoband,
                 gie_colors
             )
+        main_plots_ready(TRUE) 
+        p
         })
+        return(list(main_plots_ready = reactive(main_plots_ready)))
     })
 }
