@@ -47,7 +47,7 @@ ui <- fluidPage(
             dirSelectUI("select_dir"),
             sample_selector_ui("sample"),
             mod_controls_ui("controls"),
-            width = 3
+            width = 2
         ),
         
         mainPanel(
