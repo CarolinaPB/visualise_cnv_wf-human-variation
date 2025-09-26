@@ -250,7 +250,13 @@ mod_controls_server <- function(id, root_dir, sample_info) {
             updateNumericInput(session, "N_DV", value = 2)
             updateNumericInput(session, "N_DR", value = 5)
             
+            # Reset checkboxes to defaults
+            updateCheckboxInput(session, "circos_cnv", value = FALSE)
+            updateCheckboxInput(session, "circos_sv", value = TRUE)
+            updateCheckboxInput(session, "filter_tumor", value = TRUE)
+            updateCheckboxInput(session, "filter_normal", value = FALSE)
         })
+        
         
         observeEvent(
             c(input$chromosome, sample_info$sample()), 
