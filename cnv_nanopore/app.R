@@ -52,36 +52,37 @@ ui <- fluidPage(
         
         mainPanel(
             tabsetPanel(
-                tabPanel(
-                    "Intro",
-                    br(),
-                    h3("Overview"),
-                    p("This app allows visualization of CNV and SV results from Nanopore sequencing. 
-    Select a directory containing your data, choose a sample, and adjust the controls to customize the plots."),
-                    
-                    h3("Input Files"),
-                    tags$ul(
-                        tags$li(strong("wf-human-variation:"),
-                                tags$ul(
-                                    tags$li(tags$code("SAMPLE.wf_cnv.vcf.gz")),
-                                    tags$li(tags$code("SAMPLE.regions.bed.gz"))
-                                )
-                        ),
-                        tags$li(strong("wf-somatic-variation:"),
-                                tags$ul(
-                                    tags$li(tags$code("SAMPLE.SV_raw.tsv")),
-                                    tags$li(tags$code("SAMPLE/sv/severus-output/all_SVs/SAMPLE.severus_all.vcf"))
-                                )
-                        )
-                    ),
-                    
-                    h3("Processing SV Files"),
-                    p("Use the following command to convert the SV VCF file SAMPLE.wf-somatic-sv.vcf.gz to SAMPLE.SV_raw.tsv"),
-                    code(sv_command),
-                    
-                    h3("Circos plots"),
-                    p("The CNV plotting in the circos plots is off by default since it takes a long time to render.")
-                ),
+                # tabPanel(
+                    # "Intro",
+                    # p("For more details see the README")
+    #                 br(),
+    #                 h3("Overview"),
+    #                 p("This app allows visualization of CNV and SV results from Nanopore sequencing. 
+    # Select a directory containing your data, choose a sample, and adjust the controls to customize the plots."),
+    #                 
+    #                 h3("Input Files"),
+    #                 tags$ul(
+    #                     tags$li(strong("wf-human-variation:"),
+    #                             tags$ul(
+    #                                 tags$li(tags$code("SAMPLE.wf_cnv.vcf.gz")),
+    #                                 tags$li(tags$code("SAMPLE.regions.bed.gz"))
+    #                             )
+    #                     ),
+    #                     tags$li(strong("wf-somatic-variation:"),
+    #                             tags$ul(
+    #                                 tags$li(tags$code("SAMPLE.SV_raw.tsv")),
+    #                                 tags$li(tags$code("SAMPLE/sv/severus-output/all_SVs/SAMPLE.severus_all.vcf"))
+    #                             )
+    #                     )
+    #                 ),
+    #                 
+    #                 h3("Processing SV Files"),
+    #                 p("Use the following command to convert the SV VCF file SAMPLE.wf-somatic-sv.vcf.gz to SAMPLE.SV_raw.tsv"),
+    #                 code(sv_command),
+    #                 
+    #                 h3("Circos plots"),
+    #                 p("The CNV plotting in the circos plots is off by default since it takes a long time to render.")
+                # ),
                 tabPanel("CNVs", mod_plots_ui("plots")),
                 tabPanel("Circos Plot", 
                          br(),
