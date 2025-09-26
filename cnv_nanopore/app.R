@@ -19,28 +19,28 @@ source(here("cnv_nanopore/modules/plots.R"))
 source(here("cnv_nanopore/modules/circlize.R"))
 
 
-sv_command <- paste(
-    'gatk VariantsToTable \\',
-    '-V "$vcf" \\',
-    '-O "$out" \\',
-    '-F CHROM -F POS -F ID -F REF -F ALT -F QUAL -F FILTER \\',
-    '-F PRECISE -F IMPRECISE -F SVTYPE -F SVLEN -F CHR2 -F END -F STRANDS \\',
-    '-F DETAILED_TYPE -F INSLEN -F MAPQ -F PHASESETID -F HP -F CLUSTERID \\',
-    '-F INSSEQ -F MATE_ID -F INSIDE_VNTR -F ALINGED_POS \\',
-    '-F ANN -F LOF -F NMD \\',
-    '-F DBVARID -F ALLELEID -F CLNSIG -F CLNVCSO -F SCIDNINCL -F CLNREVSTAT \\',
-    '-F ONCREVSTAT -F RS -F CLNDNINCL -F ONC -F ORIGIN -F ONCINCL -F ONCDNINCL \\',
-    '-F ONCDISDB -F SCIREVSTAT -F ONCDISDBINCL -F MC -F CLNDN -F ONCCONF \\',
-    '-F CLNVC -F SCIDISDB -F CLNVI -F AF_EXAC -F ONCDN -F AF_ESP -F CLNSIGINCL \\',
-    '-F CLNDISDB -F GENEINFO -F CLNDISDBINCL -F AF_TGP -F CLNSIGCONF \\',
-    '-F SCIDISDBINCL -F CLNHGVS -F SCIINCL -F SCIDN -F SCI \\',
-    '-GF GT -GF GQ -GF DR -GF DV -GF VAF -GF hVAF',
-    sep = "\n"
-)
+# sv_command <- paste(
+#     'gatk VariantsToTable \\',
+#     '-V "$vcf" \\',
+#     '-O "$out" \\',
+#     '-F CHROM -F POS -F ID -F REF -F ALT -F QUAL -F FILTER \\',
+#     '-F PRECISE -F IMPRECISE -F SVTYPE -F SVLEN -F CHR2 -F END -F STRANDS \\',
+#     '-F DETAILED_TYPE -F INSLEN -F MAPQ -F PHASESETID -F HP -F CLUSTERID \\',
+#     '-F INSSEQ -F MATE_ID -F INSIDE_VNTR -F ALINGED_POS \\',
+#     '-F ANN -F LOF -F NMD \\',
+#     '-F DBVARID -F ALLELEID -F CLNSIG -F CLNVCSO -F SCIDNINCL -F CLNREVSTAT \\',
+#     '-F ONCREVSTAT -F RS -F CLNDNINCL -F ONC -F ORIGIN -F ONCINCL -F ONCDNINCL \\',
+#     '-F ONCDISDB -F SCIREVSTAT -F ONCDISDBINCL -F MC -F CLNDN -F ONCCONF \\',
+#     '-F CLNVC -F SCIDISDB -F CLNVI -F AF_EXAC -F ONCDN -F AF_ESP -F CLNSIGINCL \\',
+#     '-F CLNDISDB -F GENEINFO -F CLNDISDBINCL -F AF_TGP -F CLNSIGCONF \\',
+#     '-F SCIDISDBINCL -F CLNHGVS -F SCIINCL -F SCIDN -F SCI \\',
+#     '-GF GT -GF GQ -GF DR -GF DV -GF VAF -GF hVAF',
+#     sep = "\n"
+# )
 
 
 ui <- fluidPage(
-    titlePanel("Nanopore Visualisation"),
+    titlePanel("EPI2ME results Visualisation"),
     
     sidebarLayout(
         sidebarPanel(
