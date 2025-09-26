@@ -3,3 +3,8 @@ get_samples <- function(dir) {
     samples <- sub("\\..*$", "", files)
     unique(samples)
 }
+
+# adjust color opacity
+fade_color <- function(color, alpha = 0.1) adjustcolor(color, alpha.f = alpha)
+
+is_all_numeric <- function(x) all(!is.na(suppressWarnings(as.numeric(x))))
