@@ -40,7 +40,7 @@ source(here("cnv_nanopore/modules/circlize.R"))
 
 
 ui <- fluidPage(
-    titlePanel("EPI2ME results Visualisation"),
+    titlePanel("EPI2ME results visualisation"),
     
     sidebarLayout(
         sidebarPanel(
