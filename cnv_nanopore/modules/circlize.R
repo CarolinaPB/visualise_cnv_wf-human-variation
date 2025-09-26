@@ -10,14 +10,14 @@ mod_circos_circlize_ui <- function(id) {
 
 # ===================== Helper Functions =====================
 init_circos_default <- function(start_degree = 90) {
-    par(mar = c(1, 1, 1, 1))
+    par(mar = c(0, 0, 2, 0))  # leave top margin for sample name
     circos.par(
         "start.degree" = start_degree,
         "track.height" = 0.15,
-        "cell.padding" = c(0.01, 0.01),
-        "track.margin" = c(0.02, 0.02),
-        "canvas.xlim" = c(-1.1, 1.1),
-        "canvas.ylim" = c(-1.1, 1.1)
+        "cell.padding" = c(0, 0),
+        "track.margin" = c(0.02, 0.02),  # more gap between ring and labels
+        "canvas.xlim" = c(-1, 1),
+        "canvas.ylim" = c(-1, 1)
     )
     
     circos.initializeWithIdeogram(
@@ -26,6 +26,8 @@ init_circos_default <- function(start_degree = 90) {
         labels.cex = 0.8
     )
 }
+
+
 
 # adjust color opacity
 fade_color <- function(color, alpha = 0.1) adjustcolor(color, alpha.f = alpha)
@@ -69,9 +71,12 @@ plot_sv_links <- function(sv_df, sample_name, alpha_pass = 0.7, alpha_fail = 0.2
         fill = sv_colors,
         border = NA,
         bty = "n",
-        cex = 0.8,
-        title = "SV Type"
+        cex = 1.2,        # increase size
+        pt.cex = 1.5,     # increase size of the color boxes
+        title = "SV Type",
+        title.cex = 1.2   # (optional) make legend title larger
     )
+    
     
     title(main = sample_name, cex.main = 1.2)
 }
