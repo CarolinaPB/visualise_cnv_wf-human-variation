@@ -23,14 +23,11 @@ init_circos_default <- function(start_degree = 90) {
     circos.initializeWithIdeogram(
         species = "hg38",
         plotType = c("ideogram", "labels"),
-        labels.cex = 0.8
+        labels.cex = 1.2
     )
 }
 
 
-
-# adjust color opacity
-fade_color <- function(color, alpha = 0.1) adjustcolor(color, alpha.f = alpha)
 
 sv_colors <- c(
     BND = "#1f78b4", DEL = "#e31a1c", DUP = "#33a02c",
@@ -65,21 +62,24 @@ plot_sv_links <- function(sv_df, sample_name, alpha_pass = 0.7, alpha_fail = 0.2
         circos.genomicLink(region1, region2, col = link_colors)
     }
     
+    # Add legend with xpd = TRUE to allow drawing outside plotting region
     legend(
-        "topleft",
+        x = -1,          # leftmost x in plot coordinates
+        y = 1.1,         # slightly above top of circle
         legend = names(sv_colors),
         fill = sv_colors,
         border = NA,
         bty = "n",
-        cex = 1.2,        # increase size
-        pt.cex = 1.5,     # increase size of the color boxes
+        cex = 1.2,
+        pt.cex = 1.5,
         title = "SV Type",
-        title.cex = 1.2   # (optional) make legend title larger
+        title.cex = 1.2,
+        xpd = TRUE
     )
-    
     
     title(main = sample_name, cex.main = 1.2)
 }
+
 
 plot_cnv_track <- function(cnv_df, bed_df, max_cov) {
     cnv_cols <- c(
@@ -112,7 +112,6 @@ plot_cnv_track <- function(cnv_df, bed_df, max_cov) {
     )
 }
 
-# ===================== Server Module =====================
 # ===================== Server Module =====================
 mod_circos_circlize_server <- function(id, inputs, plots_res) {
     moduleServer(id, function(input, output, session) {

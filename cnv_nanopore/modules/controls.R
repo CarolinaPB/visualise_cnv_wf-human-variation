@@ -40,9 +40,6 @@ mod_controls_ui <- function(id) {
     )
 }
 
-is_all_numeric <- function(x) all(!is.na(suppressWarnings(as.numeric(x))))
-
-
 mod_controls_server <- function(id, root_dir, sample_info) {
     moduleServer(id, function(input, output, session) {
         
