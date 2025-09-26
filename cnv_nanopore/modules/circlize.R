@@ -113,133 +113,143 @@ plot_cnv_track <- function(cnv_df, bed_df, max_cov) {
 }
 
 # ===================== Server Module =====================
+
 mod_circos_circlize_server <- function(id, inputs, plots_res) {
-    moduleServer(id, function(input, output, session) {
-        
-        # ----------------- Reactive: Filtered SVs -----------------
-        filtered_svs <- reactive({
-            req(inputs$data_list())
-            sv_df <- inputs$data_list()$sv
-            sample_name <- inputs$sample()
-            if (is.null(sv_df) || nrow(sv_df) == 0) return(NULL)
-            
-            tumor_DV <- sym(paste0(sample_name, "_T.DV"))
-            tumor_VAF <- sym(paste0(sample_name, "_T.VAF"))
-            normal_DV <- sym(paste0(sample_name, "_N.DV"))
-            normal_DR <- sym(paste0(sample_name, "_N.DR"))
-            
-            sv_df <- sv_df %>% filter(!is.na(SVTYPE))
-            
-            if (inputs$filter_tumor()) {
-                if (inputs$filter_normal()) {
-                    sv_df <- sv_df %>%
-                        mutate(pass_filter = (!!tumor_DV) >= inputs$min_tumor_DV() &
-                                   (!!tumor_VAF) >= inputs$min_tumor_VAF() &
-                                   MAPQ >= inputs$min_MAPQ() &
-                                   (!!normal_DV) <= inputs$max_normal_DV() &
-                                   (!!normal_DR) >= inputs$min_normal_DR())
-                } else {
-                    sv_df <- sv_df %>%
-                        mutate(pass_filter = (!!tumor_DV) >= inputs$min_tumor_DV() &
-                                   (!!tumor_VAF) >= inputs$min_tumor_VAF() &
-                                   MAPQ >= inputs$min_MAPQ())
-                }
-            } else {
-                sv_df$pass_filter <- TRUE
-            }
-            
-            sv_df
-        })
-        
-        # ----------------- Reactive: CNV Cache -----------------
-        cnv_cache <- reactive({
-            req(inputs$data_list())
-            cnv_df <- inputs$data_list()$cnv
-            bed_df <- inputs$data_list()$bed
-            
-            if (is.null(cnv_df) || is.null(bed_df)) return(NULL)
-            
-            bed_binned <- bed_df %>%
-                group_by(chr, bin = floor(start/1000)) %>%
-                summarize(
-                    coverage = mean(coverage),
-                    start = min(start),
-                    end = max(end),
-                    .groups = "drop"
-                )
-            
-            list(
-                cnv_df = cnv_df,
-                bed_binned = bed_binned,
-                max_cov = inputs$max_coverage()
-            )
-        })
-        
-        # ----------------- SV Summary -----------------
-        sv_counts <- reactive({
-            sv_df <- filtered_svs()
-            if (is.null(sv_df)) return(list(pass = 0, fail = 0))
-            list(
-                pass = sum(sv_df$pass_filter, na.rm = TRUE),
-                fail = sum(!sv_df$pass_filter, na.rm = TRUE)
-            )
-        })
-        
-        output$sv_summary <- renderText({
-            counts <- sv_counts()
-            paste0("SVs passing filter: ", counts$pass, "\n",
-                   "SVs failing filter: ", counts$fail)
-        })
-        
-        # ----------------- SV Table -----------------
-        output$sv_table <- DT::renderDT({
-            sv_df <- filtered_svs() %>% filter(pass_filter == 1)
-            if (is.null(sv_df)) return(NULL)
-            
-            DT::datatable(
-                sv_df %>% dplyr::select(
-                    CHROM1, POS1, CHROM2, POS2, SVTYPE,
-                    Annotation, Annotation_Impact,
-                    Gene_Name, Gene_ID,
-                    starts_with(inputs$sample())
-                ),
-                options = list(pageLength = 10)
-            )
-        })
-        
-        # ----------------- Circos Plot -----------------
-        output$circosPlot <- renderPlot({
-            req(plots_res$main_plots_ready())
-            dat_list <- inputs$data_list()
-            sample_name <- inputs$sample()
-            sv_df <- filtered_svs()
-            
-            withProgress(message = paste("Generating Circos plot for", sample_name), value = 0, {
-                
-                # Step 1: Initialize Circos
-                incProgress(0.1, detail = "Initializing Circos...")
-                circos.clear()
-                init_circos_default()
-                
-                # Step 2: CNV + coverage track
-                if (inputs$circos_cnv()) {
-                    incProgress(0.4, detail = "Plotting CNV and coverage tracks...")
-                    cnv_data <- cnv_cache()
-                    if (!is.null(cnv_data)) {
-                        plot_cnv_track(cnv_data$cnv_df, cnv_data$bed_binned, cnv_data$max_cov)
-                    }
-                }
-                
-                # Step 3: SV links
-                if (inputs$circos_sv() && !is.null(sv_df) && nrow(sv_df) > 0) {
-                    incProgress(0.7, detail = "Plotting SV links...")
-                    plot_sv_links(sv_df, sample_name)
-                }
-                
-                # Step 4: Finalize
-                incProgress(1, detail = "Finalizing Circos plot...")
-            })
-        })
-        
+  moduleServer(id, function(input, output, session) {
+
+    # ----------------- Reactive: Filtered SVs -----------------
+    sv_data_ready <- reactive({
+      req(inputs$data_list())
+      sv_df <- inputs$data_list()$sv
+      sample_name <- inputs$sample()
+      if (is.null(sv_df) || nrow(sv_df) == 0) return(NULL)
+
+      tumor_DV <- sym(paste0(sample_name, "_T.DV"))
+      tumor_VAF <- sym(paste0(sample_name, "_T.VAF"))
+      normal_DV <- sym(paste0(sample_name, "_N.DV"))
+      normal_DR <- sym(paste0(sample_name, "_N.DR"))
+
+      sv_df <- sv_df %>%
+        filter(!is.na(SVTYPE)) %>%
+        mutate(
+          CHROM1 = factor(CHROM1),
+          CHROM2 = factor(CHROM2),
+          SVTYPE = factor(SVTYPE)
+        )
+
+      if (inputs$filter_tumor()) {
+        if (inputs$filter_normal()) {
+          sv_df <- sv_df %>%
+            mutate(pass_filter = (!!tumor_DV) >= inputs$min_tumor_DV() &
+                     (!!tumor_VAF) >= inputs$min_tumor_VAF() &
+                     MAPQ >= inputs$min_MAPQ() &
+                     (!!normal_DV) <= inputs$max_normal_DV() &
+                     (!!normal_DR) >= inputs$min_normal_DR())
+        } else {
+          sv_df <- sv_df %>%
+            mutate(pass_filter = (!!tumor_DV) >= inputs$min_tumor_DV() &
+                     (!!tumor_VAF) >= inputs$min_tumor_VAF() &
+                     MAPQ >= inputs$min_MAPQ())
+        }
+      } else {
+        sv_df$pass_filter <- TRUE
+      }
+
+      sv_df
     })
+
+    # ----------------- Reactive: CNV Cache -----------------
+    cnv_data_ready <- reactive({
+      req(inputs$data_list())
+      cnv_df <- inputs$data_list()$cnv
+      bed_df <- inputs$data_list()$bed
+      if (is.null(cnv_df) || is.null(bed_df)) return(NULL)
+
+      bed_binned <- bed_df %>%
+        group_by(chr, bin = floor(start / 1000)) %>%
+        summarize(
+          coverage = mean(coverage),
+          start = min(start),
+          end = max(end),
+          .groups = "drop"
+        )
+
+      list(
+        cnv_df = cnv_df,
+        bed_binned = bed_binned,
+        max_cov = inputs$max_coverage()
+      )
+    })
+
+    # ----------------- SV Summary -----------------
+    sv_counts <- reactive({
+      sv_df <- sv_data_ready()
+      if (is.null(sv_df)) return(list(pass = 0, fail = 0))
+      list(
+        pass = sum(sv_df$pass_filter, na.rm = TRUE),
+        fail = sum(!sv_df$pass_filter, na.rm = TRUE)
+      )
+    })
+
+    output$sv_summary <- renderText({
+      counts <- sv_counts()
+      paste0("SVs passing filter: ", counts$pass, "\n",
+             "SVs failing filter: ", counts$fail)
+    })
+
+    # ----------------- SV Table -----------------
+    output$sv_table <- DT::renderDT({
+      sv_df <- sv_data_ready()
+      if (is.null(sv_df)) return(NULL)
+      sv_df <- sv_df %>% filter(pass_filter == 1)
+
+      DT::datatable(
+        sv_df %>% dplyr::select(
+          CHROM1, POS1, CHROM2, POS2, SVTYPE, SVLEN,
+          Annotation, Annotation_Impact,
+          Gene_Name, Gene_ID,
+          starts_with(inputs$sample())
+        ),
+        extensions = 'Buttons',
+        filter = "top",
+        options = list(
+          pageLength = 10,
+          dom = 'Bfrtip',
+          buttons = c('copy', 'csv', "colvis"),
+          searching = TRUE
+        )
+      )
+    })
+
+    # ----------------- Circos Plot -----------------
+    output$circosPlot <- renderPlot({
+      req(plots_res$main_plots_ready())
+      sv_df <- sv_data_ready()
+      cnv_data <- cnv_data_ready()
+      sample_name <- inputs$sample()
+
+      withProgress(message = paste("Generating Circos plot for", sample_name), value = 0, {
+
+        # Initialize Circos
+        incProgress(0.1, detail = "Initializing Circos...")
+        circos.clear()
+        init_circos_default()
+
+        # CNV + coverage track
+        if (inputs$circos_cnv() && !is.null(cnv_data)) {
+          incProgress(0.4, detail = "Plotting CNV and coverage tracks...")
+          plot_cnv_track(cnv_data$cnv_df, cnv_data$bed_binned, cnv_data$max_cov)
+        }
+
+        # SV links
+        if (inputs$circos_sv() && !is.null(sv_df) && nrow(sv_df) > 0) {
+          incProgress(0.7, detail = "Plotting SV links...")
+          plot_sv_links(sv_df, sample_name)
+        }
+
+        # Finalize
+        incProgress(1, detail = "Done.")
+      })
+    })
+  })
 }
