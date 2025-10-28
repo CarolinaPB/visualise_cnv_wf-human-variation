@@ -8,37 +8,37 @@ mod_controls_ui <- function(id) {
         br(),
         h4("Circos settings"),
         h5("Include"),
-        fluidRow(
-            column(4,
-                   checkboxInput(ns("circos_cnv"), "CNVs", value = FALSE)
-                   ),
-            column(4,
-                   checkboxInput(ns("circos_sv"), "SVs", value = TRUE)
-            ),            
-            column(4,
-                   checkboxInput(ns("circos_snv"), "SNVs", value = TRUE)
-            ),
+        
+        # Replace multiple checkboxes with checkboxGroupInput
+        checkboxGroupInput(
+            ns("circos_tracks"),
+            label = NULL,
+            choices = c("CNVs" = "circos_cnv", 
+                        "SVs" = "circos_sv", 
+                        "SNVs" = "circos_snv",
+                        "SNV genes" = "circos_snv_genes"),
+            selected = c("circos_sv", "circos_snv", "circos_snv_genes")
         ),
-        checkboxInput(ns("circos_snv_genes"), "SNV genes", value = TRUE),
+        
         h5("SV filters"),
         checkboxInput(ns("filter_tumor"), "Somatic filtering", value = TRUE),
         fluidRow(
             column(6,
-            numericInput(ns("T_DV"), "T DV >= x:", value = 6, min = 0),
-                   ),
+                   numericInput(ns("T_DV"), "T DV >= x:", value = 6, min = 0)
+            ),
             column(6,
-            numericInput(ns("T_vaf"), "T VAF >= x:", value = 0.1, min = 0, max = 1),
+                   numericInput(ns("T_vaf"), "T VAF >= x:", value = 0.1, min = 0, max = 1)
             )
         ),        
         numericInput(ns("mapq"), "MAPQ >= x:", value = 50, min = 0),
         checkboxInput(ns("filter_normal"), "Germline Filtering:", value = FALSE),
         fluidRow(
             column(6,
-            numericInput(ns("N_DV"), "N DV <= x:", value = 2, min = 0),
-                   ),
-            column(6,
-            numericInput(ns("N_DR"), "N DR >= x:", value = 5, min = 0),
+                   numericInput(ns("N_DV"), "N DV <= x:", value = 2, min = 0)
             ),
+            column(6,
+                   numericInput(ns("N_DR"), "N DR >= x:", value = 5, min = 0)
+            )
         ),
         actionButton(ns("reset_btn"), "Reset Inputs")
     )
@@ -264,10 +264,11 @@ mod_controls_server <- function(id, root_dir, sample_info) {
             updateNumericInput(session, "N_DR", value = 5)
             
             # Reset checkboxes to defaults
-            updateCheckboxInput(session, "circos_cnv", value = FALSE)
-            updateCheckboxInput(session, "circos_sv", value = TRUE)
-            updateCheckboxInput(session, "circos_snv", value = TRUE)
-            updateCheckboxInput(session, "circos_snv_genes", value = TRUE)
+            updateCheckboxGroupInput(
+                session, 
+                "circos_tracks",
+                selected = c("circos_sv", "circos_snv", "circos_snv_genes")  # default tracks
+            )
             updateCheckboxInput(session, "filter_tumor", value = TRUE)
             updateCheckboxInput(session, "filter_normal", value = FALSE)
         })
@@ -303,10 +304,10 @@ mod_controls_server <- function(id, root_dir, sample_info) {
             start_pos    = reactive(input$start_pos),
             end_pos      = reactive(input$end_pos),
             max_coverage = reactive(input$max_coverage),
-            circos_cnv   = reactive(input$circos_cnv),
-            circos_sv    = reactive(input$circos_sv),
-            circos_snv    = reactive(input$circos_snv),
-            circos_snv_genes    = reactive(input$circos_snv_genes),
+            circos_cnv   = reactive("circos_cnv" %in% input$circos_tracks),
+            circos_sv    = reactive("circos_sv" %in% input$circos_tracks),
+            circos_snv   = reactive("circos_snv" %in% input$circos_tracks),
+            circos_snv_genes = reactive("circos_snv_genes" %in% input$circos_tracks),
             filter_tumor = reactive(input$filter_tumor),
             min_tumor_DV  = reactive(input$T_DV),
             min_tumor_VAF = reactive(input$T_vaf),
