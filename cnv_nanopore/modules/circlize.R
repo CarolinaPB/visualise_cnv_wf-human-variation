@@ -20,11 +20,8 @@ init_circos_default <- function(start_degree = 90) {
         "canvas.ylim" = c(-1, 1)
     )
     
-    circos.initializeWithIdeogram(
-        species = "hg38",
-        plotType = c("ideogram", "labels"),
-        labels.cex = 1.2
-    )
+  # initialise empty so that SNV gene labels can be plotted outside the ideogram
+    circos.initializeWithIdeogram(plotType = NULL)
 }
 
 
@@ -111,6 +108,88 @@ plot_cnv_track <- function(cnv_df, bed_df, max_cov) {
         }
     )
 }
+
+plot_snv_gene_labels <- function(snv_df){
+  snv_df <- snv_df %>%  mutate(
+    mid = floor((position + end_position) / 2)
+  ) %>% 
+    dplyr::select(chr = chromosome, start = position, end = end_position,
+                  value = wf_somatic_snv_allele_fraction,
+                  gene_symbol, 
+                  mid)
+  label_input <- snv_df %>%
+    transmute(chr = chr, start = mid, end = mid, label = gene_symbol)
+  
+  circos.genomicLabels(
+    label_input,
+    labels.column = 4,
+    side = "outside",                 # place labels outside ideogram
+    labels_height = mm_h(4),          # distance of label text from circle
+    connection_height = mm_h(2),      # length of connector line
+    cex = 1.2,
+    padding = mm_h(2),                # extra padding, helps readability
+    # bg.border = NA
+  )
+}
+
+plot_snv_track <- function(snv_df, track_height = 0.08, alpha = 0.5) {
+  if (nrow(snv_df) == 0) return(NULL)
+  
+  # --- Define activity color mapping once ---
+  activity_colors <- c(
+    loss   = "#e31a1c",
+    gain   = "#33a02c",
+    amp    = "#ff7f00",
+    normal = "#1f78b4",
+    other  = "grey70"
+  )
+  
+  snv_df <- snv_df %>%
+    dplyr::mutate(
+      activity_color = activity_colors[wf_somatic_snv_inferred_activity] %||% activity_colors["other"]
+    ) %>%
+    dplyr::select(
+      chr = chromosome, start = position, end = end_position,
+      value = wf_somatic_snv_allele_fraction,
+      activity_color, gene_symbol
+    )
+  
+  # --- Draw SNV points ---
+  circos.genomicTrack(
+    snv_df,
+    ylim = c(0, 100),
+    track.height = track_height,
+    panel.fun = function(region, value, ...) {
+      sec <- CELL_META$sector.index
+      sec_idx <- which(snv_df$chr == sec)
+      circos.genomicPoints(
+        region, value,
+        col = adjustcolor(snv_df$activity_color[sec_idx], alpha.f = alpha),
+        pch = 16
+      )
+    }
+  )
+  
+  # --- Draw legend using the same color mapping ---
+  legend(
+    x = 1.1, y = 1.1,
+    legend = names(activity_colors),
+    fill = activity_colors,
+    border = NA,
+    bty = "n",
+    cex = 1.5,
+    pt.cex = 1.5,
+    title = "SNV Activity",
+    title.cex = 1.2,
+    xpd = TRUE
+  )
+  
+
+}
+
+
+
+
 
 # ===================== Server Module =====================
 
@@ -227,13 +306,40 @@ mod_circos_circlize_server <- function(id, inputs, plots_res) {
       sv_df <- sv_data_ready()
       cnv_data <- cnv_data_ready()
       sample_name <- inputs$sample()
+      snv_data <- inputs$data_list()$snv 
+    
 
       withProgress(message = paste("Generating Circos plot for", sample_name), value = 0, {
 
         # Initialize Circos
         incProgress(0.1, detail = "Initializing Circos...")
         circos.clear()
-        init_circos_default()
+        init_circos_default() # initialises empty plot so that SNV labels can be plotted outside the ideogram
+        
+        # SNV track
+        if (inputs$circos_snv() &&
+            !is.null(snv_data) && nrow(snv_data) > 0) {
+          incProgress(0.5, detail = "Plotting SNV track...")
+          snv_data <- snv_data %>%
+            janitor::clean_names() %>%
+            mutate(chromosome = paste0("chr", chromosome)) %>%
+            rename_with( ~ sub(paste0("^", tolower(sample_name), "_"), "", .x))
+          
+          if (inputs$circos_snv_genes()) {
+            plot_snv_gene_labels(snv_data)
+          }
+          
+          circos.genomicIdeogram() # initialises ideogram
+          
+          plot_snv_track(snv_data)
+          
+        } else {
+          if (inputs$circos_snv()) {
+            incProgress(0.5, detail = "No SNVs available for plotting")
+          }
+          circos.genomicIdeogram() # initialises ideogram
+        }
+        
 
         # CNV + coverage track
         if (inputs$circos_cnv() && !is.null(cnv_data)) {

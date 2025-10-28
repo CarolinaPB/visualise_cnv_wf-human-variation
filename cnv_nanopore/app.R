@@ -7,6 +7,7 @@ library(config)
 library(shinyFiles)
 library(ggplot2)
 library(circlize)
+library(janitor)
 
 
 i_am("cnv_nanopore/app.R")

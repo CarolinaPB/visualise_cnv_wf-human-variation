@@ -9,13 +9,17 @@ mod_controls_ui <- function(id) {
         h4("Circos settings"),
         h5("Include"),
         fluidRow(
-            column(6,
+            column(4,
                    checkboxInput(ns("circos_cnv"), "CNVs", value = FALSE)
                    ),
-            column(6,
+            column(4,
                    checkboxInput(ns("circos_sv"), "SVs", value = TRUE)
+            ),            
+            column(4,
+                   checkboxInput(ns("circos_snv"), "SNVs", value = TRUE)
             ),
         ),
+        checkboxInput(ns("circos_snv_genes"), "SNV genes", value = TRUE),
         h5("SV filters"),
         checkboxInput(ns("filter_tumor"), "Somatic filtering", value = TRUE),
         fluidRow(
@@ -57,6 +61,17 @@ mod_controls_server <- function(id, root_dir, sample_info) {
             sv_somatic_file <- file.path(root_dir(), paste0(sample_name, ".SV_raw.tsv"))
             sv_all_file <- file.path(root_dir(), paste0("severus_all_", sample_name, ".vcf"))
             
+            snv_file <- list.files(root_dir(), pattern=paste0(sample_name, ".*snv.*"), full.names=TRUE)
+            
+            if (length(snv_file) == 0) {
+                snv_file <- NULL
+                message("No SNV file found for sample: ", sample_name)
+            } else {
+                snv_file <- read_tsv(snv_file)
+                print(snv_file)
+            }
+            
+            # read CNV file
             if (file.exists(cnv_file_plain)) {
                 cnv_file <- cnv_file_plain
             } else if (file.exists(cnv_file_gz)) {
@@ -221,7 +236,8 @@ mod_controls_server <- function(id, root_dir, sample_info) {
                 bed = bed,
                 cnv = cnv_df_cov,
                 coverage_ranges = coverage_ranges,
-                sv = sv_w_normal
+                sv = sv_w_normal,
+                snv = snv_file
             )
         })
         
@@ -250,6 +266,8 @@ mod_controls_server <- function(id, root_dir, sample_info) {
             # Reset checkboxes to defaults
             updateCheckboxInput(session, "circos_cnv", value = FALSE)
             updateCheckboxInput(session, "circos_sv", value = TRUE)
+            updateCheckboxInput(session, "circos_snv", value = TRUE)
+            updateCheckboxInput(session, "circos_snv_genes", value = TRUE)
             updateCheckboxInput(session, "filter_tumor", value = TRUE)
             updateCheckboxInput(session, "filter_normal", value = FALSE)
         })
@@ -287,6 +305,8 @@ mod_controls_server <- function(id, root_dir, sample_info) {
             max_coverage = reactive(input$max_coverage),
             circos_cnv   = reactive(input$circos_cnv),
             circos_sv    = reactive(input$circos_sv),
+            circos_snv    = reactive(input$circos_snv),
+            circos_snv_genes    = reactive(input$circos_snv_genes),
             filter_tumor = reactive(input$filter_tumor),
             min_tumor_DV  = reactive(input$T_DV),
             min_tumor_VAF = reactive(input$T_vaf),
