@@ -316,29 +316,30 @@ mod_circos_circlize_server <- function(id, inputs, plots_res) {
         circos.clear()
         init_circos_default() # initialises empty plot so that SNV labels can be plotted outside the ideogram
         
-        # SNV track
-        if (inputs$circos_snv() &&
-            !is.null(snv_data) && nrow(snv_data) > 0) {
-          incProgress(0.5, detail = "Plotting SNV track...")
+        # Process SNV data once at the start
+        if (!is.null(snv_data) && nrow(snv_data) > 0) {
           snv_data <- snv_data %>%
             janitor::clean_names() %>%
             mutate(chromosome = paste0("chr", chromosome)) %>%
-            rename_with( ~ sub(paste0("^", tolower(sample_name), "_"), "", .x))
-          
-          if (inputs$circos_snv_genes()) {
-            plot_snv_gene_labels(snv_data)
-          }
-          
-          circos.genomicIdeogram() # initialises ideogram
-          
-          plot_snv_track(snv_data)
-          
-        } else {
-          if (inputs$circos_snv()) {
-            incProgress(0.5, detail = "No SNVs available for plotting")
-          }
-          circos.genomicIdeogram() # initialises ideogram
+            rename_with(~ sub(paste0("^", tolower(sample_name), "_"), "", .x))
         }
+        
+        # Plot SNV gene labels first if requested and data exists
+        if (inputs$circos_snv_genes() && !is.null(snv_data) && nrow(snv_data) > 0) {
+          plot_snv_gene_labels(snv_data)
+        }
+        
+        # Initialise ideogram (after gene labels)
+        circos.genomicIdeogram()
+        
+        # Plot SNV track if data exists and track is selected
+        if (inputs$circos_snv() && !is.null(snv_data) && nrow(snv_data) > 0) {
+          incProgress(0.5, detail = "Plotting SNV track...")
+          plot_snv_track(snv_data)
+        } else if (inputs$circos_snv()) {
+          incProgress(0.5, detail = "No SNVs available for plotting")
+        }
+        
         
 
         # CNV + coverage track
