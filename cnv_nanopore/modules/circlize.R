@@ -21,7 +21,7 @@ init_circos_default <- function(start_degree = 90) {
     )
     
   # initialise empty so that SNV gene labels can be plotted outside the ideogram
-    circos.initializeWithIdeogram(plotType = NULL)
+    circos.initializeWithIdeogram(plotType = NULL, species = "hg38")
 }
 
 
@@ -80,8 +80,8 @@ plot_sv_links <- function(sv_df, sample_name, alpha_pass = 0.7, alpha_fail = 0.2
 
 plot_cnv_track <- function(cnv_df, bed_df, max_cov) {
     cnv_cols <- c(
-        DEL = adjustcolor("red", alpha.f = 0.7),
-        DUP = adjustcolor("green", alpha.f = 0.7)
+        DEL = adjustcolor("#DC143C", alpha.f = 0.7),
+        DUP = adjustcolor("#00FF7F", alpha.f = 0.7)
     )
     
     cnv_df$col <- cnv_cols[cnv_df$svtype]
@@ -124,11 +124,10 @@ plot_snv_gene_labels <- function(snv_df){
     label_input,
     labels.column = 4,
     side = "outside",                 # place labels outside ideogram
-    labels_height = mm_h(4),          # distance of label text from circle
+    labels_height = mm_h(2),          # distance of label text from circle
     connection_height = mm_h(2),      # length of connector line
     cex = 1.2,
     padding = mm_h(2),                # extra padding, helps readability
-    # bg.border = NA
   )
 }
 
@@ -187,6 +186,34 @@ plot_snv_track <- function(snv_df, track_height = 0.08, alpha = 0.5) {
 
 }
 
+plot_chr_labels <- function() {
+  sectors <- get.all.sector.index()
+  
+  # Create a dummy track for chromosome IDs
+  circos.track(
+    ylim = c(0, 1),  # dummy y-axis
+    track.height = 0.05,  # thin track
+    panel.fun = function(x, y) {
+      sec <- CELL_META$sector.index
+      x_center <- mean(CELL_META$xlim)
+      circos.text(
+        x = x_center,
+        y = 0.5,  # slightly above track
+        labels = sub("^chr", "", sec),
+        facing = "bending.inside",
+        niceFacing = TRUE,
+        cex = 1.2,
+        adj = c(0.5, 0)
+      )
+    },
+    bg.border = NA
+  )
+}
+
+
+
+
+
 
 
 
@@ -237,7 +264,7 @@ mod_circos_circlize_server <- function(id, inputs, plots_res) {
       sv_df
     })
 
-    # ----------------- Reactive: CNV Cache -----------------
+    
     cnv_data_ready <- reactive({
       req(inputs$data_list())
       cnv_df <- inputs$data_list()$cnv
@@ -328,16 +355,17 @@ mod_circos_circlize_server <- function(id, inputs, plots_res) {
         if (inputs$circos_snv_genes() && !is.null(snv_data) && nrow(snv_data) > 0) {
           plot_snv_gene_labels(snv_data)
         }
+        plot_chr_labels()
         
         # Initialise ideogram (after gene labels)
-        circos.genomicIdeogram()
+        circos.genomicIdeogram(species = "hg38")
         
         # Plot SNV track if data exists and track is selected
         if (inputs$circos_snv() && !is.null(snv_data) && nrow(snv_data) > 0) {
-          incProgress(0.5, detail = "Plotting SNV track...")
+          incProgress(0.3, detail = "Plotting SNV track...")
           plot_snv_track(snv_data)
         } else if (inputs$circos_snv()) {
-          incProgress(0.5, detail = "No SNVs available for plotting")
+          incProgress(0.3, detail = "No SNVs available for plotting")
         }
         
         
